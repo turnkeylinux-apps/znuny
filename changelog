@@ -1,3 +1,17 @@
+turnkey-otrs-19.0 (1) turnkey; urgency=low
+
+  * Update the appliance base to Debian 13 (Trixie).
+
+  * Install the security-supported Znuny 6.5 LTS package from Debian and use
+    its current permissions and cron contracts.
+
+  * Replace the CPAN build-time dependency with the Debian Mozilla CA package.
+
+  * Add a Debian package updater and v19 acceptance coverage for agent login,
+    queues, mail-created tickets, MariaDB, background jobs, and local mail.
+
+ -- TurnKey Linux release engineering <release@turnkeylinux.org>  Tue, 25 Aug 2026 00:00:00 +0000
+
 turnkey-otrs-18.0 (1) turnkey; urgency=low
 
   * Install OTRS v6.5.6 (from backports)

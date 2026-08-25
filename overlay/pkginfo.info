@@ -6,4 +6,4 @@ d-i otrs2/database-type string mysql
 d-i otrs2/mysql/method string Unix socket
 d-i otrs2/db/app-user string otrs@localhost
 d-i otrs2/dbconfig-reinstall boolean true
-d-i otrs2/db/dbname boolean otrs2
+d-i otrs2/db/dbname string otrs

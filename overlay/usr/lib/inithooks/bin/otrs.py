@@ -8,11 +8,10 @@ Option:
 
 import sys
 import getopt
-import shlex
-import re
 import subprocess
 
 from libinithooks.dialog_wrapper import Dialog
+
 
 def usage(s=None):
     if s:
@@ -40,10 +39,16 @@ def main():
             "OTRS Password",
             "Enter new password for the OTRS 'root@localhost' account.")
 
-    quoted_password = shlex.quote(password)
-    subprocess.run(['su', '-c',
-        f'LC_ALL=C.UTF-8 /usr/share/otrs/bin/otrs.Console.pl Admin::User::SetPassword root@localhost {quoted_password}',
-        '-s', '/bin/bash', 'otrs'])
-    
+    subprocess.run(
+        [
+            '/usr/sbin/runuser', '-u', 'otrs', '--',
+            '/usr/bin/env', 'LC_ALL=C.UTF-8',
+            '/usr/share/otrs/bin/otrs.Console.pl',
+            'Admin::User::SetPassword', 'root@localhost', password,
+        ],
+        check=True,
+    )
+
+
 if __name__ == "__main__":
     main()

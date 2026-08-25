@@ -1,0 +1,78 @@
+#!/bin/bash -e
+
+set -o pipefail
+
+SOURCE_RECORD=/usr/local/share/turnkey-otrs/source
+CONSOLE=/usr/share/otrs/bin/otrs.Console.pl
+
+usage() {
+    echo "usage: $0 --check | --apply [--dry-run]" >&2
+    exit 2
+}
+
+mode=
+dry_run=false
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --check|--apply)
+            [ -z "$mode" ] || usage
+            mode=${1#--}
+            ;;
+        --dry-run)
+            dry_run=true
+            ;;
+        *)
+            usage
+            ;;
+    esac
+    shift
+done
+[ -n "$mode" ] || usage
+[ "$mode" = apply ] || [ "$dry_run" = false ] || usage
+
+[ -s "$SOURCE_RECORD" ]
+grep -qx 'package=otrs2' "$SOURCE_RECORD"
+grep -qx 'repository=Debian 13 Trixie non-free' "$SOURCE_RECORD"
+
+apt-get update >/dev/null
+installed=$(dpkg-query -W -f='${Version}' otrs2)
+candidate=$(apt-cache policy otrs2 | awk '/Candidate:/ {print $2; exit}')
+[ -n "$candidate" ] && [ "$candidate" != '(none)' ]
+
+status=up-to-date
+if dpkg --compare-versions "$candidate" gt "$installed"; then
+    status=update-available
+fi
+
+echo "installed=$installed"
+echo "candidate=$candidate"
+echo 'channel=Debian 13 stable packages for Znuny 6.5 LTS'
+echo "status=$status"
+
+[ "$mode" = apply ] || exit 0
+if [ "$dry_run" = true ]; then
+    apt-get -s install --only-upgrade otrs2 >/dev/null
+    echo 'apply=dry-run Debian signed package transaction'
+    exit 0
+fi
+
+[ "$(id -u)" -eq 0 ]
+if [ "$status" = up-to-date ]; then
+    echo 'apply=no-op'
+    exit 0
+fi
+
+apt-get -y install --only-upgrade otrs2
+/usr/sbin/runuser -u otrs -- env LC_ALL=C.UTF-8 \
+    "$CONSOLE" Maint::Config::Rebuild
+/usr/sbin/runuser -u otrs -- env LC_ALL=C.UTF-8 \
+    "$CONSOLE" Maint::Cache::Delete
+/usr/sbin/runuser -u otrs -- /usr/share/otrs/bin/otrs.Daemon.pl \
+    stop --force >/dev/null 2>&1 || true
+/usr/sbin/runuser -u otrs -- /usr/share/otrs/bin/otrs.Daemon.pl \
+    start >/dev/null
+systemctl restart apache2
+
+installed=$(dpkg-query -W -f='${Version}' otrs2)
+sed -i "s/^installed_version=.*/installed_version=$installed/" "$SOURCE_RECORD"
+echo "apply=installed $installed"

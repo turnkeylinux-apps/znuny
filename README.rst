@@ -17,9 +17,8 @@ and on top of that:
 
 - OTRS/Znuny configurations:
    
-   - Installs the security-supported Znuny 6.5 LTS line from Debian 13
-     package management.
-   - Includes spell checking.
+   - Installed from package management.
+   - Includes spell checking and documentation.
 
 - SSL support out of the box.
 - Includes TurnKey web control panel (convenience).
@@ -30,13 +29,10 @@ and on top of that:
 Customer registration requires valid networking configuration (email
 support).
 
-Check the Debian update channel with ``turnkey-otrs-update --check``. Apply an
-available package update with ``turnkey-otrs-update --apply``.
-
 Credentials *(passwords set at first boot)*
 -------------------------------------------
 
--  Webmin, SSH, MySQL: username **root**
+-  Webmin, Webshell, SSH, MySQL: username **root**
 -  OTRS/Znuny: username **root@localhost**
 
 

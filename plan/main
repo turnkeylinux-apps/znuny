@@ -18,7 +18,7 @@ libclass-inspector-perl
 libtext-csv-xs-perl /* optional - but recommended */
 libjson-xs-perl /* optional - but recommended */
 
-libmozilla-ca-perl
+make /* for cpan */
 
 procmail
 patch

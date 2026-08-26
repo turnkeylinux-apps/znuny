@@ -1,0 +1,8 @@
+schema=turnkey-v19-product-blocked-attestation-v1
+review_record_kind=genie-independent-review
+review_record_id=otrs-product-blocked-dd46748-20260826T142752Z
+reviewed_commit=dd46748fabc21e2d054924302cf610c96367a630
+reviewed_tree=6d8a47537348fd03a8d8909048325398f3431e6e
+dossier_blob_oid=4049ff46e5aba5cf128fa90f5fa03df6d9335349
+dossier_sha256=d032d1b2187eb6c9dc100be59c125a5d0cd21e6a65d32cdc974fdfe686805b85
+verdict=SHIP

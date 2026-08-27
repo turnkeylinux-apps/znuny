@@ -48,11 +48,12 @@ DEBIAN_FRONTEND=noninteractive apt-get install --assume-yes otrs2
 unset ADMIN_PASS MYSQL_PASS
 set -x
 
-otrs_version=$(dpkg-query -W -f='${Version}' otrs2)
-install -d -m 0755 /usr/local/share/turnkey-otrs
-cat > /usr/local/share/turnkey-otrs/source <<EOF
+znuny_package_version=$(dpkg-query -W -f='${Version}' otrs2)
+install -d -m 0755 /usr/local/share/turnkey-znuny
+cat > /usr/local/share/turnkey-znuny/source <<EOF
 package=otrs2
-installed_version=$otrs_version
+source_package=znuny
+installed_version=$znuny_package_version
 repository=Debian 13 Trixie non-free
 channel=Debian stable packages for Znuny 6.5 LTS
 EOF
@@ -63,7 +64,7 @@ $BIN/otrs.SetPermissions.pl \
 ln -sf /usr/lib/ispell/american.hash /usr/lib/ispell/english.hash
 
 service apache2 start
-echo '# TurnKey uses /etc/otrs/apache.conf via the otrs2 site.' \
+echo '# TurnKey Znuny uses /etc/otrs/apache.conf via the otrs2 site.' \
     > /etc/apache2/conf-enabled/otrs2.conf
 ln -s /etc/otrs/apache.conf /etc/apache2/sites-available/otrs2.conf
 rm -r /var/www/html/

@@ -11,7 +11,7 @@ libgd-text-perl
 
 libcgi-pm-perl
 
-libmodule-refresh-perl /* OTRS deps */
+libmodule-refresh-perl /* Znuny runtime deps */
 libclass-inspector-perl
 //libsoap-lite-perl requires libmailtools-perl
 

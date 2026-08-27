@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Set OTRS admin ('root@localhost') password
+"""Set the Znuny administrator ('root@localhost') password
 
 Option:
     --pass=     unless provided, will ask interactively
@@ -36,8 +36,8 @@ def main():
     if not password:
         d = Dialog('TurnKey Linux - First boot configuration')
         password = d.get_password(
-            "OTRS Password",
-            "Enter new password for the OTRS 'root@localhost' account.")
+            "Znuny Password",
+            "Enter a new password for the Znuny 'root@localhost' account.")
 
     subprocess.run(
         [

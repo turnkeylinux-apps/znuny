@@ -1,7 +1,7 @@
 COMMON_OVERLAYS = tkl-webcp apache
 COMMON_CONF = apache-vhost apache-credit tkl-webcp
 
-CREDIT_ANCHORTEXT = OTRS Appliance
+CREDIT_ANCHORTEXT = Znuny Appliance
 BACKPORTS=y
 BACKPORTS_NONFREE=y
 BACKPORTS_PINS=otrs

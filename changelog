@@ -1,4 +1,4 @@
-turnkey-otrs-19.0 (1) turnkey; urgency=low
+turnkey-znuny-19.0 (1) turnkey; urgency=low
 
   * Update the appliance base to Debian 13 (Trixie).
 
@@ -7,8 +7,14 @@ turnkey-otrs-19.0 (1) turnkey; urgency=low
 
   * Replace the CPAN build-time dependency with the Debian Mozilla CA package.
 
+  * Create the separately branded Znuny appliance while retaining Debian's
+    package-owned OTRS-compatible runtime interfaces.
+
   * Add a Debian package updater and v19 acceptance coverage for agent login,
     queues, mail-created tickets, MariaDB, background jobs, and local mail.
+
+  * Replace historical product artwork with a neutral TurnKey Znuny badge and
+    document its provenance and non-endorsement boundary.
 
  -- TurnKey Linux release engineering <release@turnkeylinux.org>  Tue, 25 Aug 2026 00:00:00 +0000
 

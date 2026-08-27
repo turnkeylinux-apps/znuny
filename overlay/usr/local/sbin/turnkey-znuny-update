@@ -2,7 +2,7 @@
 
 set -o pipefail
 
-SOURCE_RECORD=/usr/local/share/turnkey-otrs/source
+SOURCE_RECORD=/usr/local/share/turnkey-znuny/source
 CONSOLE=/usr/share/otrs/bin/otrs.Console.pl
 
 usage() {
@@ -32,6 +32,7 @@ done
 
 [ -s "$SOURCE_RECORD" ]
 grep -qx 'package=otrs2' "$SOURCE_RECORD"
+grep -qx 'source_package=znuny' "$SOURCE_RECORD"
 grep -qx 'repository=Debian 13 Trixie non-free' "$SOURCE_RECORD"
 
 apt-get update >/dev/null

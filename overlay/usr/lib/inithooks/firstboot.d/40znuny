@@ -1,7 +1,7 @@
 #!/bin/bash -e
-# set otrs admin password
+# Set the Znuny administrator password.
 
 . /etc/default/inithooks
 
 [ -e "$INITHOOKS_CONF" ] && . "$INITHOOKS_CONF"
-"$INITHOOKS_PATH/bin/otrs.py" --pass="$APP_PASS"
+"$INITHOOKS_PATH/bin/znuny.py" --pass="$APP_PASS"

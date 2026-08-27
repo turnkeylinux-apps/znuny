@@ -11,7 +11,7 @@ Content-Type: text/html
         <meta http-equiv="Content-Style-Type" content="text/css">
         <meta http-equiv="Content-Script-Type" content="text/javascript">
 
-        <title>TurnKey OTRS</title>
+        <title>TurnKey Znuny</title>
         
         <link rel="stylesheet" href="css/ui.tabs.css" type="text/css" media="print, projection, screen">
         <link rel="stylesheet" href="css/base.css" type="text/css">
@@ -27,7 +27,7 @@ Content-Type: text/html
     </head>
 
     <body>
-        <h1>TurnKey OTRS</h1>
+        <h1>TurnKey Znuny</h1>
         
         <div id="container-1">
             <ul>
@@ -38,11 +38,11 @@ Content-Type: text/html
                 <div class="fragment-content">
                     <div>
                         <a href="https://$ENV{'HTTP_HOST'}/otrs/login.pl">
-                        <img src="images/otrs.png"/>Administration</a>
+                        <img src="images/znuny.png" width="80" height="80" alt="Znuny"/>Administration</a>
                     </div>
                     <div>
                         <a href="https://$ENV{'HTTP_HOST'}/otrs/customer.pl">
-                        <img src="images/otrs.png"/>Customers</a>
+                        <img src="images/znuny.png" width="80" height="80" alt="Znuny"/>Customers</a>
                     </div>
                     <div>
                         <a href="https://$ENV{'HTTP_HOST'}:12321">
@@ -53,12 +53,12 @@ Content-Type: text/html
 
                     <h2>Resources and references</h2>
                     <ul>
-                        <li>Login as <b>admin</b> and get ticketing!</li>
+                        <li>Login as <b>root\@localhost</b> and get ticketing!</li>
 
-                        <li>OTRS documentation (<a href='http://doc.otrs.org/5.0/en/html/'>online</a>)</li>
+                        <li>Znuny documentation (<a href='https://doc.znuny.org/'>online</a>)</li>
 
-                        <li><a href="https://www.turnkeylinux.org/otrs">
-                        TurnKey OTRS release notes</a></li>
+                        <li><a href="https://www.turnkeylinux.org/znuny">
+                        TurnKey Znuny release notes</a></li>
                     </ul>
 
                 </div>

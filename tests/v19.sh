@@ -65,6 +65,8 @@ test "$(awk -F= '$1 == "installed_version" {print $2}' "$source_record")" = \
 grep -Fxq 'VERSION_CODENAME=trixie' /etc/os-release || fail 'not Debian Trixie'
 grep -Eq '^turnkey-znuny-19\.0' /etc/turnkey_version ||
     fail 'appliance release identity is not turnkey-znuny-19.0'
+grep -q '\[20regen-znuny-secrets\] successfully completed' /var/log/inithooks.log ||
+    fail 'Znuny secret regeneration did not complete'
 grep -q '\[40znuny\] successfully completed' /var/log/inithooks.log ||
     fail 'normal Znuny firstboot did not complete'
 

@@ -118,6 +118,9 @@ grep -Fq 'rm -r -- /var/www/html' "$repo_root/conf.d/main" ||
     fail 'landing-path cleanup does not use the explicit target'
 grep -Fxq 'a2enmod ssl' "$repo_root/conf.d/main" ||
     fail 'Znuny HTTPS site is missing its Apache ssl-module contract'
+grep -Eq '^COMMON_CONF = .*([[:space:]])apache-ssl([[:space:]]|$)' \
+    "$repo_root/Makefile" ||
+    fail 'Znuny HTTPS site is missing the TurnKey certificate contract'
 grep -Fq '<title>TurnKey Znuny</title>' "$repo_root/overlay/var/www/index.cgi" ||
     fail 'landing title is not Znuny'
 grep -Fq 'https://www.turnkeylinux.org/znuny' "$repo_root/overlay/var/www/index.cgi" ||

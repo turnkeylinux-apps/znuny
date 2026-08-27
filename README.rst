@@ -16,8 +16,8 @@ and on top of that:
 
 - Znuny configurations:
    
-   - Installs the security-supported Znuny 6.5 LTS line from Debian 13
-     package management.
+   - Installs the security-supported Znuny 6.5 LTS line from Debian 13's
+     signed ``trixie-backports`` package channel.
    - Includes spell checking.
 
 - SSL support out of the box.

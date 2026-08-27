@@ -28,9 +28,6 @@ allowed_otrs_hit() {
         docs/assets.md)
             [[ $value =~ commercial[[:space:]]OTRS|OTRS-branded ]] && return 0
             ;;
-        Makefile)
-            [[ $value == 'BACKPORTS_PINS=otrs' ]] && return 0
-            ;;
         conf.d/main|overlay/etc/otrs/*|overlay/pkginfo.info)
             return 0
             ;;
@@ -112,6 +109,32 @@ grep -Fxq 'CREDIT_ANCHORTEXT = Znuny Appliance' "$repo_root/Makefile" ||
     fail 'credit identity is not Znuny'
 grep -Fxq 'NONFREE = yes' "$repo_root/Makefile" ||
     fail 'Debian stable non-free component is not enabled for package otrs2'
+! grep -Eq '^BACKPORTS(_PINS|_NONFREE)?[[:space:]]*=' "$repo_root/Makefile" ||
+    fail 'ineffective common backports variables remain'
+backports_source="$repo_root/overlay/etc/apt/sources.list.d/debian-backports.sources"
+grep -Fxq 'Suites: trixie-backports' "$backports_source" ||
+    fail 'backports suite is not trixie-backports'
+grep -Fxq 'Components: main contrib non-free non-free-firmware' \
+    "$backports_source" || fail 'backports source does not include non-free'
+grep -Fxq 'Enabled: yes' "$backports_source" ||
+    fail 'backports source is not enabled'
+grep -Fxq 'Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' \
+    "$backports_source" || fail 'backports source is missing Debian archive trust'
+backports_pin="$repo_root/overlay/etc/apt/preferences.d/debian-backports.pref"
+grep -Fxq 'Package: otrs2' "$backports_pin" ||
+    fail 'backports preference does not target binary package otrs2'
+grep -Fxq 'Pin: release n=trixie-backports' "$backports_pin" ||
+    fail 'backports preference does not pin the codename field'
+grep -Fxq 'Pin-Priority: 500' "$backports_pin" ||
+    fail 'backports preference has the wrong priority'
+grep -Fq -- '--target-release trixie-backports otrs2' "$repo_root/conf.d/main" ||
+    fail 'build does not explicitly select the backports Znuny package'
+[[ $(grep -Fc -- '--target-release trixie-backports' \
+    "$repo_root/overlay/usr/local/sbin/turnkey-znuny-update") == 2 ]] ||
+    fail 'updater dry-run/apply does not stay on trixie-backports'
+grep -Fq 'APT::Default-Release=trixie-backports policy otrs2' \
+    "$repo_root/overlay/usr/local/sbin/turnkey-znuny-update" ||
+    fail 'updater check does not select the trixie-backports candidate'
 grep -Fq 'if [ -e /var/www/html ]; then' "$repo_root/conf.d/main" ||
     fail 'landing-path cleanup is not idempotent'
 grep -Fq 'rm -r -- /var/www/html' "$repo_root/conf.d/main" ||

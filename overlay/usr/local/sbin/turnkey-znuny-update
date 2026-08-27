@@ -33,12 +33,20 @@ done
 [ -s "$SOURCE_RECORD" ]
 grep -qx 'package=otrs2' "$SOURCE_RECORD"
 grep -qx 'source_package=znuny' "$SOURCE_RECORD"
-grep -qx 'repository=Debian 13 Trixie non-free' "$SOURCE_RECORD"
+grep -qx 'repository=Debian 13 Trixie backports non-free' "$SOURCE_RECORD"
+grep -qx 'channel=Debian signed trixie-backports packages for Znuny 6.5 LTS' \
+    "$SOURCE_RECORD"
 
 apt-get update >/dev/null
 installed=$(dpkg-query -W -f='${Version}' otrs2)
-candidate=$(apt-cache policy otrs2 | awk '/Candidate:/ {print $2; exit}')
+candidate=$(apt-cache -o APT::Default-Release=trixie-backports policy otrs2 |
+    awk '/Candidate:/ {print $2; exit}')
 [ -n "$candidate" ] && [ "$candidate" != '(none)' ]
+dpkg --compare-versions "$candidate" ge '6.5.19'
+case "$candidate" in
+    *~bpo13+*) ;;
+    *) echo "unexpected non-backports candidate: $candidate" >&2; exit 1 ;;
+esac
 
 status=up-to-date
 if dpkg --compare-versions "$candidate" gt "$installed"; then
@@ -47,12 +55,13 @@ fi
 
 echo "installed=$installed"
 echo "candidate=$candidate"
-echo 'channel=Debian 13 stable packages for Znuny 6.5 LTS'
+echo 'channel=Debian signed trixie-backports packages for Znuny 6.5 LTS'
 echo "status=$status"
 
 [ "$mode" = apply ] || exit 0
 if [ "$dry_run" = true ]; then
-    apt-get -s install --only-upgrade otrs2 >/dev/null
+    apt-get -s install --only-upgrade --target-release trixie-backports \
+        otrs2 >/dev/null
     echo 'apply=dry-run Debian signed package transaction'
     exit 0
 fi
@@ -63,7 +72,7 @@ if [ "$status" = up-to-date ]; then
     exit 0
 fi
 
-apt-get -y install --only-upgrade otrs2
+apt-get -y install --only-upgrade --target-release trixie-backports otrs2
 /usr/sbin/runuser -u otrs -- env LC_ALL=C.UTF-8 \
     "$CONSOLE" Maint::Config::Rebuild
 /usr/sbin/runuser -u otrs -- env LC_ALL=C.UTF-8 \

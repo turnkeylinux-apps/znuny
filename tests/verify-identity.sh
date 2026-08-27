@@ -110,6 +110,8 @@ grep -Fxq 'turnkey-znuny-19.0 (1) turnkey; urgency=low' "$repo_root/changelog" |
     fail 'v19 changelog identity is not turnkey-znuny-19.0'
 grep -Fxq 'CREDIT_ANCHORTEXT = Znuny Appliance' "$repo_root/Makefile" ||
     fail 'credit identity is not Znuny'
+grep -Fxq 'NONFREE = yes' "$repo_root/Makefile" ||
+    fail 'Debian stable non-free component is not enabled for package otrs2'
 grep -Fq '<title>TurnKey Znuny</title>' "$repo_root/overlay/var/www/index.cgi" ||
     fail 'landing title is not Znuny'
 grep -Fq 'https://www.turnkeylinux.org/znuny' "$repo_root/overlay/var/www/index.cgi" ||

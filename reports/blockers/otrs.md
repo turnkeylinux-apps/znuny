@@ -1,5 +1,10 @@
 # PRODUCT-BLOCKED
 
+> **Status semantics:** Review approval of this blocker dossier does **not**
+> constitute `SHIP` for the OTRS v19 migration and must not be counted as a
+> shipped migration in aggregate reporting. It confirms only that the blocker
+> evidence and handoff are complete. The migration remains `PRODUCT-BLOCKED`.
+
 Official evidence: OTRS maintains a current commercial product and security process, but its current hardware and software requirements list Debian 11 and 12 rather than Debian 13; its installation and upgrade documentation routes both operations through the OTRS Customer Solutions Team, while OTRS officially ended security updates for OTRS 6 and ((OTRS)) Community Edition 6 in March 2020.
 Debian route: Debian 13's `otrs2` 6.5.15-2 binary comes from source package `znuny`, is described by Debian as “Open Ticket Request System Znuny,” and names the Znuny project as its homepage; installing it would replace OTRS with a distinct fork.
 Official upstream route: The maintained OTRS channel has no supported Debian 13 target or public, integrity-verifiable installation feed available to this appliance build; the official documentation says installation and upgrades are performed through the Customer Solutions Team and OTRS Portal.

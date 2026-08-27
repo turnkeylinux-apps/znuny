@@ -8,6 +8,8 @@ source_record=/usr/local/share/turnkey-znuny/source
 console=/usr/share/otrs/bin/otrs.Console.pl
 daemon=/usr/share/otrs/bin/otrs.Daemon.pl
 updater=/usr/local/sbin/turnkey-znuny-update
+bounce_filter=/usr/share/otrs/Kernel/System/PostMaster/Filter/DetectBounceEmail.pm
+bundled_sisimai=/usr/share/otrs/Kernel/cpan-lib/Sisimai/Data.pm
 test_tmpdir=$(mktemp -d -t turnkey-znuny-v19.XXXXXXXX)
 cookie_jar=$test_tmpdir/cookies
 login_page=$test_tmpdir/login-page
@@ -50,16 +52,34 @@ znuny_login() {
 test -s "$source_record" || fail 'Znuny source record is missing'
 grep -qx 'package=otrs2' "$source_record" || fail 'binary package record changed'
 grep -qx 'source_package=znuny' "$source_record" || fail 'source package record changed'
-grep -qx 'repository=Debian 13 Trixie non-free' "$source_record" ||
+grep -qx 'repository=Debian 13 Trixie backports non-free' "$source_record" ||
     fail 'repository record changed'
-grep -qx 'channel=Debian stable packages for Znuny 6.5 LTS' "$source_record" ||
+grep -qx 'channel=Debian signed trixie-backports packages for Znuny 6.5 LTS' \
+    "$source_record" ||
     fail 'update channel record changed'
 
 installed=$(dpkg-query -W -f='${Version}' otrs2)
 source_package=$(dpkg-query -W -f='${source:Package}' otrs2)
 test "$source_package" = znuny || fail "unexpected source package: $source_package"
-dpkg --compare-versions "$installed" ge '6.5.15-2' ||
+dpkg --compare-versions "$installed" ge '6.5.19' ||
     fail "unexpected package version: $installed"
+case "$installed" in
+    *~bpo13+*) ;;
+    *) fail "installed package is not from trixie-backports: $installed" ;;
+esac
+test -s "$bundled_sisimai" || fail 'bundled Sisimai::Data is missing'
+sisimai_version=$(perl -I/usr/share/otrs/Kernel/cpan-lib -MSisimai \
+    -e 'print Sisimai->version')
+test "$sisimai_version" = '4.25.16' ||
+    fail "unexpected bundled Sisimai version: $sisimai_version"
+resolved_sisimai=$(perl -I/usr/share/otrs/Custom \
+    -I/usr/share/otrs/Kernel/cpan-lib -I/usr/share/otrs -MSisimai::Data \
+    -e 'print $INC{"Sisimai/Data.pm"}')
+test "$resolved_sisimai" = "$bundled_sisimai" ||
+    fail "Sisimai::Data resolved outside Znuny: $resolved_sisimai"
+perl -I/usr/share/otrs/Custom -I/usr/share/otrs/Kernel/cpan-lib \
+    -I/usr/share/otrs \
+    -c "$bounce_filter" >/dev/null
 test "$(awk -F= '$1 == "installed_version" {print $2}' "$source_record")" = \
     "$installed" || fail 'source record does not match installed version'
 grep -Fxq 'VERSION_CODENAME=trixie' /etc/os-release || fail 'not Debian Trixie'
@@ -140,21 +160,30 @@ updater_check=$($updater --check)
 candidate=$(awk -F= '$1 == "candidate" {print $2}' <<<"$updater_check")
 update_status=$(awk -F= '$1 == "status" {print $2}' <<<"$updater_check")
 test -n "$candidate" || fail 'updater candidate is empty'
-case "$update_status" in
-    up-to-date|update-available) ;;
-    *) fail "unexpected updater status: $update_status" ;;
+dpkg --compare-versions "$candidate" ge "$installed" ||
+    fail "backports candidate is older than the installed package: $candidate"
+case "$candidate" in
+    *~bpo13+*) ;;
+    *) fail "updater selected a non-backports candidate: $candidate" ;;
 esac
+if [ "$candidate" = "$installed" ]; then
+    test "$update_status" = up-to-date ||
+        fail "equal candidate reported unexpected status: $update_status"
+else
+    test "$update_status" = update-available ||
+        fail "newer candidate reported unexpected status: $update_status"
+fi
 grep -qx 'apply=dry-run Debian signed package transaction' \
     < <($updater --apply --dry-run) || fail 'signed updater dry-run failed'
 
 cat >"$result" <<EOF
-package_source=Debian 13 Trixie non-free binary package otrs2 from source package znuny (Znuny 6.5 LTS)
+package_source=Debian 13 Trixie backports non-free binary package otrs2 from source package znuny (Znuny 6.5 LTS)
 installed_version=$installed
-runtime_checks=normal firstboot; Znuny landing and authenticated agent login; queue create/read; mail ticket create/read; MariaDB persistence after restart; daemon restart; cron; Postfix; application mail queue
+runtime_checks=normal firstboot; Znuny landing and authenticated agent login; queue create/read; bundled Sisimai 4.25.16 filter compile; non-bounce mail ticket create/read; MariaDB persistence after restart; daemon restart; cron; Postfix; application mail queue
 updater_command=turnkey-znuny-update --check; turnkey-znuny-update --apply --dry-run
 updater_result=$update_status candidate $candidate; Debian signed dry-run transaction accepted
-updater_channel=Debian 13 stable packages for Znuny 6.5 LTS
-integrity_evidence=Debian archive signatures; source package znuny; apt candidate; installed dpkg version; application database check
+updater_channel=Debian signed trixie-backports packages for Znuny 6.5 LTS
+integrity_evidence=Debian archive signatures; current trixie-backports candidate; source package znuny; installed dpkg version; bundled Sisimai 4.25.16 Data.pm resolved ahead of system modules and filter compile; non-bounce mail ingestion; application database check
 EOF
 
 echo 'PASS: Znuny identity, firstboot, service-desk workflow, persistence, jobs, mail, and updater'

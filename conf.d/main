@@ -41,7 +41,8 @@ otrs2   otrs2/remove-error  select  abort
 EOF
 
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install --assume-yes otrs2
+DEBIAN_FRONTEND=noninteractive apt-get install --assume-yes \
+    --target-release trixie-backports otrs2
 
 /usr/sbin/runuser -u otrs -- env LC_ALL=C.UTF-8 \
     "$BIN/otrs.Console.pl" Admin::User::SetPassword root@localhost "$ADMIN_PASS"
@@ -54,8 +55,8 @@ cat > /usr/local/share/turnkey-znuny/source <<EOF
 package=otrs2
 source_package=znuny
 installed_version=$znuny_package_version
-repository=Debian 13 Trixie non-free
-channel=Debian stable packages for Znuny 6.5 LTS
+repository=Debian 13 Trixie backports non-free
+channel=Debian signed trixie-backports packages for Znuny 6.5 LTS
 EOF
 
 $BIN/otrs.SetPermissions.pl \

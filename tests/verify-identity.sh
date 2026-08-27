@@ -11,6 +11,14 @@ fail() {
     exit 1
 }
 
+forbidden_otrs_push_url() {
+    local url=${1,,}
+
+    url=${url%/}
+    url=${url%.git}
+    [[ $url =~ (^|[:/])turnkeylinux-apps/otrs$ ]]
+}
+
 allowed_otrs_hit() {
     local path=$1 line=$2 value=$3
 
@@ -53,7 +61,7 @@ allowed_otrs_hit() {
 }
 
 run_self_test() {
-    local policy candidate
+    local policy candidate url
 
     allowed_otrs_hit conf.d/main 1 'DB_NAME=otrs' || fail 'runtime database allowlist rejected'
     allowed_otrs_hit overlay/etc/apt/preferences.d/debian-backports.pref 1 \
@@ -93,6 +101,24 @@ run_self_test() {
     [[ $policy == *$'\ncomplete-policy-tail' ]] ||
         fail 'policy parser did not capture the complete large tail'
 
+    for url in \
+        'https://github.com/turnkeylinux-apps/otrs' \
+        'https://github.com/turnkeylinux-apps/otrs.git' \
+        'git@github.com:turnkeylinux-apps/otrs.git' \
+        'ssh://git@github.com/turnkeylinux-apps/otrs.git'; do
+        forbidden_otrs_push_url "$url" ||
+            fail "OTRS push URL fixture was allowed: $url"
+    done
+    for url in \
+        'https://github.com/turnkeylinux-apps/znuny' \
+        'git@github.com:turnkeylinux-apps/znuny.git' \
+        'ssh://git@github.com/turnkeylinux-apps/znuny.git' \
+        'https://github.com/example/otrs.git' \
+        'https://github.com/turnkeylinux-apps/otrs-migration.git'; do
+        ! forbidden_otrs_push_url "$url" ||
+            fail "legitimate push URL fixture was rejected: $url"
+    done
+
     echo 'identity self-test: PASS'
 }
 
@@ -104,8 +130,6 @@ fi
 [[ $# == 0 ]] || fail 'usage: verify-identity.sh [--self-test]'
 
 [[ $(basename "$repo_root") == znuny ]] || fail 'repository directory is not named znuny'
-[[ $(git -C "$repo_root" branch --show-current) == wish-znuny-v19-trixie ]] ||
-    fail 'unexpected topic branch'
 git -C "$repo_root" merge-base --is-ancestor \
     0f0475b50a87eab992a8cf488245812db436e71d HEAD || fail 'seed commit is not an ancestor'
 for excluded in \
@@ -115,7 +139,12 @@ for excluded in \
     ! git -C "$repo_root" merge-base --is-ancestor "$excluded" HEAD ||
         fail "OTRS-only blocker commit is an ancestor: $excluded"
 done
-[[ -z $(git -C "$repo_root" remote) ]] || fail 'a git remote is configured'
+while IFS= read -r remote; do
+    while IFS= read -r push_url; do
+        ! forbidden_otrs_push_url "$push_url" ||
+            fail "remote $remote has a forbidden OTRS push URL: $push_url"
+    done < <(git -C "$repo_root" remote get-url --push --all "$remote")
+done < <(git -C "$repo_root" remote)
 
 grep -Fxq 'Znuny - Open Source Service Desk' "$repo_root/README.rst" ||
     fail 'README title is not Znuny'

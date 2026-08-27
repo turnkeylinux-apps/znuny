@@ -72,6 +72,7 @@ if [ -e /var/www/html ]; then
 fi
 a2dissite 000-default
 a2ensite otrs2
+a2enmod ssl
 a2enmod cgid
 
 sed -i 's/^#MAILTO=\(.*\)$/MAILTO=\1/' /etc/otrs/cron

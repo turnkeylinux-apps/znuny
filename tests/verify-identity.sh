@@ -112,6 +112,10 @@ grep -Fxq 'CREDIT_ANCHORTEXT = Znuny Appliance' "$repo_root/Makefile" ||
     fail 'credit identity is not Znuny'
 grep -Fxq 'NONFREE = yes' "$repo_root/Makefile" ||
     fail 'Debian stable non-free component is not enabled for package otrs2'
+grep -Fq 'if [ -e /var/www/html ]; then' "$repo_root/conf.d/main" ||
+    fail 'landing-path cleanup is not idempotent'
+grep -Fq 'rm -r -- /var/www/html' "$repo_root/conf.d/main" ||
+    fail 'landing-path cleanup does not use the explicit target'
 grep -Fq '<title>TurnKey Znuny</title>' "$repo_root/overlay/var/www/index.cgi" ||
     fail 'landing title is not Znuny'
 grep -Fq 'https://www.turnkeylinux.org/znuny' "$repo_root/overlay/var/www/index.cgi" ||

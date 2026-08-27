@@ -67,7 +67,9 @@ service apache2 start
 echo '# TurnKey Znuny uses /etc/otrs/apache.conf via the otrs2 site.' \
     > /etc/apache2/conf-enabled/otrs2.conf
 ln -s /etc/otrs/apache.conf /etc/apache2/sites-available/otrs2.conf
-rm -r /var/www/html/
+if [ -e /var/www/html ]; then
+    rm -r -- /var/www/html
+fi
 a2dissite 000-default
 a2ensite otrs2
 a2enmod cgid

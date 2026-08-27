@@ -39,8 +39,8 @@ grep -qx 'channel=Debian signed trixie-backports packages for Znuny 6.5 LTS' \
 
 apt-get update >/dev/null
 installed=$(dpkg-query -W -f='${Version}' otrs2)
-candidate=$(apt-cache -o APT::Default-Release=trixie-backports policy otrs2 |
-    awk '/Candidate:/ {print $2; exit}')
+policy=$(apt-cache -o APT::Default-Release=trixie-backports policy otrs2)
+candidate=$(awk '/Candidate:/ {print $2; exit}' <<<"$policy")
 [ -n "$candidate" ] && [ "$candidate" != '(none)' ]
 dpkg --compare-versions "$candidate" ge '6.5.19'
 case "$candidate" in

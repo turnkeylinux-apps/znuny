@@ -28,7 +28,7 @@ allowed_otrs_hit() {
         docs/assets.md)
             [[ $value =~ commercial[[:space:]]OTRS|OTRS-branded ]] && return 0
             ;;
-        conf.d/main|overlay/etc/otrs/*|overlay/pkginfo.info)
+        conf.d/main|overlay/etc/apt/preferences.d/debian-backports.pref|overlay/etc/otrs/*|overlay/pkginfo.info)
             return 0
             ;;
         overlay/usr/lib/inithooks/bin/znuny.py)
@@ -53,7 +53,11 @@ allowed_otrs_hit() {
 }
 
 run_self_test() {
+    local policy candidate
+
     allowed_otrs_hit conf.d/main 1 'DB_NAME=otrs' || fail 'runtime database allowlist rejected'
+    allowed_otrs_hit overlay/etc/apt/preferences.d/debian-backports.pref 1 \
+        'Package: otrs2' || fail 'package preference allowlist rejected'
     allowed_otrs_hit overlay/etc/otrs/apache.conf 1 '<Location /otrs>' ||
         fail 'package path allowlist rejected'
     allowed_otrs_hit overlay/usr/lib/inithooks/bin/znuny.py 1 \
@@ -76,6 +80,18 @@ run_self_test() {
     ! allowed_otrs_hit docs/v19.0-testing.md 1 'OTRS v19 testing' ||
         fail 'stale test-report branding was allowed'
     ! allowed_otrs_hit arbitrary.txt 1 'otrs' || fail 'unknown OTRS hit was allowed'
+
+    policy=$(
+        printf 'otrs2:\n  Installed: 6.5.24-1~bpo13+1\n'
+        printf '  Candidate: 6.5.24-1~bpo13+1\n  Version table:\n'
+        awk 'BEGIN { for (i = 1; i <= 200000; i++) print "tail " i }'
+        printf 'complete-policy-tail\n'
+    )
+    candidate=$(awk '/Candidate:/ {print $2; exit}' <<<"$policy")
+    [[ $candidate == 6.5.24-1~bpo13+1 ]] ||
+        fail 'captured policy candidate parser changed'
+    [[ $policy == *$'\ncomplete-policy-tail' ]] ||
+        fail 'policy parser did not capture the complete large tail'
 
     echo 'identity self-test: PASS'
 }
@@ -135,6 +151,12 @@ grep -Fq -- '--target-release trixie-backports otrs2' "$repo_root/conf.d/main" |
 grep -Fq 'APT::Default-Release=trixie-backports policy otrs2' \
     "$repo_root/overlay/usr/local/sbin/turnkey-znuny-update" ||
     fail 'updater check does not select the trixie-backports candidate'
+grep -Fq 'policy=$(apt-cache -o APT::Default-Release=trixie-backports policy otrs2)' \
+    "$repo_root/overlay/usr/local/sbin/turnkey-znuny-update" ||
+    fail 'updater does not capture complete APT policy output'
+grep -Fq 'candidate=$(awk '\''/Candidate:/ {print $2; exit}'\'' <<<"$policy")' \
+    "$repo_root/overlay/usr/local/sbin/turnkey-znuny-update" ||
+    fail 'updater does not parse its captured APT policy output'
 grep -Fq 'if [ -e /var/www/html ]; then' "$repo_root/conf.d/main" ||
     fail 'landing-path cleanup is not idempotent'
 grep -Fq 'rm -r -- /var/www/html' "$repo_root/conf.d/main" ||

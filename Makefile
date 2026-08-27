@@ -1,5 +1,5 @@
 COMMON_OVERLAYS = tkl-webcp apache
-COMMON_CONF = apache-vhost apache-credit tkl-webcp
+COMMON_CONF = apache-vhost apache-credit tkl-webcp apache-ssl
 
 CREDIT_ANCHORTEXT = Znuny Appliance
 NONFREE = yes

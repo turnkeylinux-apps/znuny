@@ -3,6 +3,7 @@ set -Eeuo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_root=$(cd "$script_dir/.." && pwd)
+common_git_dir=$(git -C "$repo_root" rev-parse --path-format=absolute --git-common-dir)
 historical_changelog_line=$(awk '/^turnkey-otrs-18\.0 / {print NR; exit}' \
     "$repo_root/changelog")
 
@@ -129,7 +130,8 @@ if [[ ${1:-} == --self-test ]]; then
 fi
 [[ $# == 0 ]] || fail 'usage: verify-identity.sh [--self-test]'
 
-[[ $(basename "$repo_root") == znuny ]] || fail 'repository directory is not named znuny'
+[[ $(basename "$(dirname "$common_git_dir")") == znuny ]] ||
+    fail 'canonical repository directory is not named znuny'
 git -C "$repo_root" merge-base --is-ancestor \
     0f0475b50a87eab992a8cf488245812db436e71d HEAD || fail 'seed commit is not an ancestor'
 for excluded in \
@@ -222,7 +224,8 @@ mapfile -t art_files < <(find "$repo_root/.art" -maxdepth 1 -type f -printf '%f\
     fail 'undocumented historical screenshots or art remain'
 cmp -s "$repo_root/.art/logo.png" "$repo_root/overlay/var/www/images/znuny.png" ||
     fail 'documented identical badge copies differ'
-file "$repo_root/.art/logo.png" | grep -Fq 'PNG image data' || fail 'badge is not a PNG'
+[[ $(od -An -tx1 -N8 "$repo_root/.art/logo.png" | tr -d '[:space:]') == 89504e470d0a1a0a ]] ||
+    fail 'badge is not a PNG'
 
 while IFS= read -r path; do
     [[ -e $repo_root/$path ]] || continue
